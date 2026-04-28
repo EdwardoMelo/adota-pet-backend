@@ -1,5 +1,4 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import * as bcrypt from 'bcrypt';
 import {
   AdminRegisterTicketStatus,
   Prisma,
@@ -12,12 +11,12 @@ import { ShelterRepository } from '../common/repositories/shelter.repository';
 import { TenantRepository } from '../common/repositories/tenant.repository';
 import { UserRepository } from '../common/repositories/user.repository';
 import { EmailService } from '../common/services/email.service';
-import { generateTemporaryPassword } from '../common/utils/generate-temporary-password';
 
 type TicketPayload = {
   user: {
     name: string;
     email: string;
+    passwordHash: string;
   };
   shelter: {
     name: string;
@@ -66,8 +65,6 @@ export class RegisterTicketsService {
           return { kind: 'unchanged' as const, ticket };
         }
 
-        const plainPassword = generateTemporaryPassword(10);
-        const passwordHash = await bcrypt.hash(plainPassword, 10);
         const payload = ticket.payload as Prisma.JsonObject as TicketPayload;
         const normalizedAddress = normalizeAddressPayload(
           payload.shelter.address,
@@ -98,7 +95,7 @@ export class RegisterTicketsService {
           {
             name: payload.user.name,
             email: payload.user.email,
-            password: passwordHash,
+            password: payload.user.passwordHash,
             role: UserRole.shelter_admin,
             tenant: { connect: { id: tenant.id } },
           },
@@ -122,10 +119,9 @@ export class RegisterTicketsService {
 <p>Use os dados abaixo para acessar o AdotaPet:</p>
 <ul>
   <li><strong>E-mail:</strong> ${escapeHtml(payload.user.email)}</li>
-  <li><strong>Senha temporária:</strong> ${escapeHtml(plainPassword)}</li>
 </ul>
 <p><a href="${escapeAttr(loginBase)}">Acessar login</a></p>
-<p>Por segurança, altere a senha após o primeiro acesso.</p>`;
+<p>Você poderá entrar com a senha definida no momento da solicitação de cadastro.</p>`;
 
         await this.emailService.sendEmail(
           body,

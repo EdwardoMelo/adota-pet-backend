@@ -31,6 +31,7 @@ export class OnboardingService {
   }
 
   async createAdminRegisterTicket(dto: CreateAdminRegisterTicketDTO) {
+    const passwordHash = await bcrypt.hash(dto.password, 10);
     const ticket = await this.adminRegisterTicketRepository.create({
       userName: dto.name,
       userEmail: dto.email,
@@ -39,6 +40,7 @@ export class OnboardingService {
         user: {
           name: dto.name,
           email: dto.email,
+          passwordHash,
         },
         shelter: {
           name: dto.shelter.name,

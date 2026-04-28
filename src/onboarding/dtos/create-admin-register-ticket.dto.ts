@@ -1,6 +1,7 @@
 import { Type } from 'class-transformer';
 import {
   IsEmail,
+  MinLength,
   IsNotEmpty,
   IsOptional,
   IsString,
@@ -63,6 +64,11 @@ export class CreateAdminRegisterTicketDTO {
   @IsEmail()
   @IsNotEmpty()
   email!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @MinLength(6)
+  password!: string;
 
   @ValidateNested()
   @Type(() => ShelterPayloadDTO)

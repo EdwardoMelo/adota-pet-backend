@@ -47,13 +47,15 @@ export class AdoptionDataService {
       if (!previous) return updated;
 
       if (data.status === 'completed') {
-        await this.petRepository.update(
-          updated.petId,
-          { status: ShelterPetStatus.adopted },
-          tx,
-        );
+        if (updated.petId != null) {
+          await this.petRepository.update(
+            updated.petId,
+            { status: ShelterPetStatus.adopted },
+            tx,
+          );
+        }
 
-        if (previous.status !== 'completed') {
+        if (previous.status !== 'completed' && updated.petId != null) {
           const pet = await this.petRepository.findById(updated.petId, tx);
           if (pet) {
             await this.userPetRepository.create(
@@ -83,7 +85,7 @@ export class AdoptionDataService {
           tx,
         );
 
-        if (openAdoptions.length === 0) {
+        if (openAdoptions.length === 0 && updated.petId != null) {
           await this.petRepository.update(
             updated.petId,
             { status: ShelterPetStatus.available },

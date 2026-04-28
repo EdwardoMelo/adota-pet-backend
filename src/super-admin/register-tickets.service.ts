@@ -23,7 +23,16 @@ type TicketPayload = {
     name: string;
     cnpj?: string;
     contact: string;
-    address: string;
+    address:
+      | {
+          street: string;
+          city: string;
+          state: string;
+          zipCode: string;
+          number: string;
+          apartment?: string | null;
+        }
+      | string;
     email: string;
   };
 };
@@ -60,11 +69,14 @@ export class RegisterTicketsService {
         const plainPassword = generateTemporaryPassword(10);
         const passwordHash = await bcrypt.hash(plainPassword, 10);
         const payload = ticket.payload as Prisma.JsonObject as TicketPayload;
+        const normalizedAddress = normalizeAddressPayload(
+          payload.shelter.address,
+        );
 
         const tenant = await this.tenantRepository.create(
           {
             name: payload.shelter.name,
-            city: payload.shelter.address,
+            address: normalizedAddress,
             subscriptionStatus: SubscriptionStatus.trialing,
           },
           tx,
@@ -75,7 +87,7 @@ export class RegisterTicketsService {
             name: payload.shelter.name,
             cnpj: payload.shelter.cnpj,
             contact: payload.shelter.contact,
-            address: payload.shelter.address,
+            address: normalizedAddress,
             email: payload.shelter.email,
             tenant: { connect: { id: tenant.id } },
           },
@@ -154,4 +166,25 @@ function escapeHtml(s: string): string {
 /** Atributo href: aspas e `&` */
 function escapeAttr(s: string): string {
   return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+}
+
+function normalizeAddressPayload(payload: TicketPayload['shelter']['address']) {
+  if (typeof payload === 'string') {
+    return {
+      street: payload,
+      city: '',
+      state: '',
+      zipCode: '',
+      number: '',
+      apartment: null,
+    };
+  }
+  return {
+    street: payload?.street ?? '',
+    city: payload?.city ?? '',
+    state: payload?.state ?? '',
+    zipCode: payload?.zipCode ?? '',
+    number: payload?.number ?? '',
+    apartment: payload?.apartment ?? null,
+  };
 }

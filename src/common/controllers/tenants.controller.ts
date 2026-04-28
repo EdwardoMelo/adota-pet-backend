@@ -29,7 +29,14 @@ export class TenantsController {
     @Body()
     body: {
       name: string;
-      city: string;
+      address: {
+        street: string;
+        city: string;
+        state: string;
+        zipCode: string;
+        number: string;
+        apartment?: string | null;
+      };
       subscriptionStatus?: 'active' | 'trialing' | 'past_due' | 'canceled';
       stripeAccountId?: string;
     },

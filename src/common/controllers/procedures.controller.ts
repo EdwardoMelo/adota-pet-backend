@@ -36,7 +36,7 @@ export class ProceduresController {
   create(
     @Body()
     body: {
-      tenantId: number;
+      tenantId: number | string;
       name: string;
       description: string;
       durationMinutes: number;
@@ -48,7 +48,7 @@ export class ProceduresController {
       description: body.description,
       durationMinutes: body.durationMinutes,
       isActive: body.isActive ?? true,
-      tenant: { connect: { id: body.tenantId } },
+      tenant: { connect: { id: Number(body.tenantId) } },
     });
   }
 

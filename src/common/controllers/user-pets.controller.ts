@@ -33,6 +33,7 @@ export class UserPetsController {
       name: string;
       age: number;
       type: 'dog' | 'cat' | 'other';
+      imageUrl?: string;
       notes?: string;
     },
   ) {
@@ -40,6 +41,7 @@ export class UserPetsController {
       name: body.name,
       age: body.age,
       type: body.type,
+      imageUrl: body.imageUrl,
       notes: body.notes,
       user: { connect: { id: body.userId } },
     });

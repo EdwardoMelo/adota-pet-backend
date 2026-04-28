@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma, ShelterPet } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma.service';
 
 @Injectable()
@@ -10,24 +10,25 @@ export class PetRepository {
     return tx ?? this.prisma;
   }
 
-  findAll(
-    params?: Prisma.ShelterPetFindManyArgs,
+  findAll<T extends Prisma.ShelterPetFindManyArgs>(
+    params?: Prisma.SelectSubset<T, Prisma.ShelterPetFindManyArgs>,
     tx?: Prisma.TransactionClient,
-  ): Promise<ShelterPet[]> {
+  ): Promise<Prisma.ShelterPetGetPayload<T>[]> {
     return this.getExecutor(tx).shelterPet.findMany(params);
   }
 
   findById(
     id: number,
     tx?: Prisma.TransactionClient,
-  ): Promise<ShelterPet | null> {
-    return this.getExecutor(tx).shelterPet.findUnique({ where: { id } });
+    args?: Omit<Prisma.ShelterPetFindUniqueArgs, 'where'>,
+  ): Promise<any> {
+    return this.getExecutor(tx).shelterPet.findUnique({
+      where: { id },
+      ...(args ?? {}),
+    });
   }
 
-  create(
-    data: Prisma.ShelterPetCreateInput,
-    tx?: Prisma.TransactionClient,
-  ): Promise<ShelterPet> {
+  create(data: Prisma.ShelterPetCreateInput, tx?: Prisma.TransactionClient) {
     return this.getExecutor(tx).shelterPet.create({ data });
   }
 
@@ -35,11 +36,11 @@ export class PetRepository {
     id: number,
     data: Prisma.ShelterPetUpdateInput,
     tx?: Prisma.TransactionClient,
-  ): Promise<ShelterPet> {
+  ) {
     return this.getExecutor(tx).shelterPet.update({ where: { id }, data });
   }
 
-  remove(id: number, tx?: Prisma.TransactionClient): Promise<ShelterPet> {
+  remove(id: number, tx?: Prisma.TransactionClient) {
     return this.getExecutor(tx).shelterPet.delete({ where: { id } });
   }
 }

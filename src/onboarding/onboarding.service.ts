@@ -22,7 +22,8 @@ export class OnboardingService {
       role: UserRole.citizen,
     });
 
-    const { password: _omit, ...userWithoutPassword } = createdUser;
+    const { password, ...userWithoutPassword } = createdUser;
+    void password;
 
     return {
       user: userWithoutPassword,
@@ -43,7 +44,14 @@ export class OnboardingService {
           name: dto.shelter.name,
           cnpj: dto.shelter.cnpj ?? null,
           contact: dto.shelter.contact,
-          address: dto.shelter.address,
+          address: {
+            street: dto.shelter.address.street,
+            city: dto.shelter.address.city,
+            state: dto.shelter.address.state,
+            zipCode: dto.shelter.address.zipCode,
+            number: dto.shelter.address.number,
+            apartment: dto.shelter.address.apartment ?? null,
+          },
           email: dto.shelter.email,
         },
       },

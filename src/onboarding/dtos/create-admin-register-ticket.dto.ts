@@ -7,6 +7,32 @@ import {
   ValidateNested,
 } from 'class-validator';
 
+class ShelterAddressPayloadDTO {
+  @IsString()
+  @IsNotEmpty()
+  street!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  city!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  state!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  zipCode!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  number!: string;
+
+  @IsOptional()
+  @IsString()
+  apartment?: string;
+}
+
 class ShelterPayloadDTO {
   @IsString()
   @IsNotEmpty()
@@ -20,9 +46,9 @@ class ShelterPayloadDTO {
   @IsNotEmpty()
   contact!: string;
 
-  @IsString()
-  @IsNotEmpty()
-  address!: string;
+  @ValidateNested()
+  @Type(() => ShelterAddressPayloadDTO)
+  address!: ShelterAddressPayloadDTO;
 
   @IsEmail()
   @IsNotEmpty()

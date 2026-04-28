@@ -53,7 +53,7 @@ enum AdminRegisterTicketStatus {
 model Tenant {
   id                 Int         @id @default(autoincrement())
   name               String
-  city               String
+  address            Json
   subscriptionStatus SubscriptionStatus @default(trialing)
   stripeAccountId    String?
   createdAt          DateTime    @default(now())
@@ -93,7 +93,7 @@ model ShelterPet {
   species     PetSpecies
   description String
   status      ShelterPetStatus @default(available)
-  imageUrl    String
+  imageUrl    String           @db.Text
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
 
@@ -121,6 +121,7 @@ model UserPet {
   name             String
   age              Int
   type             PetSpecies
+  imageUrl         String?          @db.Text
   notes            String?
   sourceAdoptionId Int?     @unique
   createdAt        DateTime @default(now())
@@ -152,7 +153,7 @@ model Appointment {
 model Adoption {
   id          Int            @id @default(autoincrement())
   tenantId    Int
-  petId       Int
+  petId       Int?
   userId      Int
   status      AdoptionStatus @default(pending)
   notes       String?
@@ -160,7 +161,7 @@ model Adoption {
   updatedAt   DateTime       @updatedAt
 
   tenant      Tenant      @relation(fields: [tenantId], references: [id])
-  pet         ShelterPet  @relation(fields: [petId], references: [id])
+  pet         ShelterPet? @relation(fields: [petId], references: [id], onDelete: SetNull)
   user        User        @relation(fields: [userId], references: [id])
   userPet     UserPet?    @relation("AdoptionToUserPet")
 
@@ -174,7 +175,7 @@ model Shelter {
   name      String
   cnpj      String?
   contact   String
-  address   String
+  address   Json
   email     String
   tenantId  Int
   createdAt DateTime @default(now())

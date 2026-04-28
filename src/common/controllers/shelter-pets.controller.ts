@@ -21,6 +21,15 @@ export class ShelterPetsController {
     return this.petRepository.findAll({
       where: tenantIdAsNumber ? { tenantId: tenantIdAsNumber } : undefined,
       orderBy: { createdAt: 'desc' },
+      include: {
+        tenant: {
+          select: {
+            id: true,
+            name: true,
+            address: true,
+          },
+        },
+      },
     });
   }
 
@@ -33,12 +42,31 @@ export class ShelterPetsController {
         tenantId: tenantIdAsNumber,
       },
       orderBy: { createdAt: 'desc' },
+      include: {
+        tenant: {
+          select: {
+            id: true,
+            name: true,
+            address: true,
+          },
+        },
+      },
     });
   }
 
   @Get(':id')
   getById(@Param('id', ParseIntPipe) id: number) {
-    return this.petRepository.findById(id);
+    return this.petRepository.findById(id, undefined, {
+      include: {
+        tenant: {
+          select: {
+            id: true,
+            name: true,
+            address: true,
+          },
+        },
+      },
+    });
   }
 
   @Post()

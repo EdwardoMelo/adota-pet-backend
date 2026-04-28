@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE `User` MODIFY `password` VARCHAR(191) NOT NULL DEFAULT '$2b$10$BcBB2oTK5LT/CsBGDs1z6.y3dTH5H1/jIWmMhYx0BvCr9nvvt6rJu';

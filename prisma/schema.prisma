@@ -1,0 +1,198 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  super_admin
+  shelter_admin
+  citizen
+}
+
+enum SubscriptionStatus {
+  active
+  trialing
+  past_due
+  canceled
+}
+
+enum PetSpecies {
+  dog
+  cat
+  other
+}
+
+enum ShelterPetStatus {
+  available
+  adopted
+}
+
+enum AppointmentStatus {
+  scheduled
+  confirmed
+  completed
+  cancelled
+}
+
+enum AdoptionStatus {
+  pending
+  completed
+  cancelled
+}
+
+enum AdminRegisterTicketStatus {
+  pending
+  approved
+  rejected
+}
+
+model Tenant {
+  id                 Int         @id @default(autoincrement())
+  name               String
+  city               String
+  subscriptionStatus SubscriptionStatus @default(trialing)
+  stripeAccountId    String?
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+
+  users        User[]
+  shelters     Shelter[]
+  shelterPets  ShelterPet[]
+  procedures   Procedure[]
+  appointments Appointment[]
+  adoptions    Adoption[]
+}
+
+model User {
+  id                   Int      @id @default(autoincrement())
+  name                 String
+  email                String   @unique
+  password             String   @default("$2b$10$BcBB2oTK5LT/CsBGDs1z6.y3dTH5H1/jIWmMhYx0BvCr9nvvt6rJu")
+  role                 UserRole
+  tenantId             Int?
+  stripeCustomerId     String?
+  stripeSubscriptionId String?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  tenant       Tenant?       @relation(fields: [tenantId], references: [id])
+  userPets     UserPet[]
+  appointments Appointment[]
+  adoptions    Adoption[]
+}
+
+model ShelterPet {
+  id          Int              @id @default(autoincrement())
+  tenantId    Int
+  name        String
+  age         Int
+  species     PetSpecies
+  description String
+  status      ShelterPetStatus @default(available)
+  imageUrl    String
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  tenant      Tenant        @relation(fields: [tenantId], references: [id])
+  adoptions   Adoption[]
+}
+
+model Procedure {
+  id              Int      @id @default(autoincrement())
+  tenantId        Int
+  name            String
+  description     String
+  durationMinutes Int
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  tenant       Tenant        @relation(fields: [tenantId], references: [id])
+  appointments Appointment[]
+}
+
+model UserPet {
+  id               Int      @id @default(autoincrement())
+  userId           Int
+  name             String
+  age              Int
+  type             PetSpecies
+  notes            String?
+  sourceAdoptionId Int?     @unique
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  user            User       @relation(fields: [userId], references: [id])
+  sourceAdoption  Adoption?  @relation("AdoptionToUserPet", fields: [sourceAdoptionId], references: [id])
+  appointments    Appointment[]
+}
+
+model Appointment {
+  id          Int               @id @default(autoincrement())
+  tenantId    Int
+  userId      Int
+  procedureId Int
+  userPetId   Int?
+  scheduledAt DateTime
+  status      AppointmentStatus @default(scheduled)
+  notes       String?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  tenant      Tenant    @relation(fields: [tenantId], references: [id])
+  user        User      @relation(fields: [userId], references: [id])
+  procedure   Procedure @relation(fields: [procedureId], references: [id])
+  userPet     UserPet?  @relation(fields: [userPetId], references: [id])
+}
+
+model Adoption {
+  id          Int            @id @default(autoincrement())
+  tenantId    Int
+  petId       Int
+  userId      Int
+  status      AdoptionStatus @default(pending)
+  notes       String?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  tenant      Tenant      @relation(fields: [tenantId], references: [id])
+  pet         ShelterPet  @relation(fields: [petId], references: [id])
+  user        User        @relation(fields: [userId], references: [id])
+  userPet     UserPet?    @relation("AdoptionToUserPet")
+
+  @@index([tenantId, status])
+  @@index([userId, status])
+  @@index([petId, status])
+}
+
+model Shelter {
+  id        Int      @id @default(autoincrement())
+  name      String
+  cnpj      String?
+  contact   String
+  address   String
+  email     String
+  tenantId  Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId])
+}
+
+model AdminRegisterTicket {
+  id         Int                       @id @default(autoincrement())
+  userName   String
+  userEmail  String
+  status     AdminRegisterTicketStatus @default(pending)
+  payload    Json
+  createdAt  DateTime                  @default(now())
+  reviewedAt DateTime?
+
+  @@index([status, createdAt])
+}

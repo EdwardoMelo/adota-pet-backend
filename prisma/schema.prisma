@@ -91,7 +91,7 @@ model ShelterPet {
   name        String
   age         Int
   species     PetSpecies
-  description String
+  description String           @db.Text
   status      ShelterPetStatus @default(available)
   imageUrl    String           @db.Text
   createdAt   DateTime         @default(now())

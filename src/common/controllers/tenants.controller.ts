@@ -7,6 +7,7 @@ import {
   Patch,
   ParseIntPipe,
   Post,
+  Query,
 } from '@nestjs/common';
 import { TenantDataService } from '../services/tenant-data.service';
 
@@ -14,9 +15,37 @@ import { TenantDataService } from '../services/tenant-data.service';
 export class TenantsController {
   constructor(private readonly tenantDataService: TenantDataService) {}
 
+  private normalize(value?: string | null) {
+    return (value ?? '').trim().toLowerCase();
+  }
+
   @Get()
-  getAll() {
-    return this.tenantDataService.getAll();
+  async getAll(
+    @Query('search') search?: string,
+    @Query('city') city?: string,
+    @Query('state') state?: string,
+  ) {
+    const tenants = await this.tenantDataService.getAll();
+    const searchFilter = this.normalize(search);
+    const cityFilter = this.normalize(city);
+    const stateFilter = this.normalize(state);
+
+    return tenants.filter((tenant) => {
+      const tenantCity = this.normalize((tenant.address as { city?: string })?.city);
+      const tenantState = this.normalize((tenant.address as { state?: string })?.state);
+      const tenantName = this.normalize(tenant.name);
+      const tenantStreet = this.normalize((tenant.address as { street?: string })?.street);
+
+      if (cityFilter && !tenantCity.includes(cityFilter)) return false;
+      if (stateFilter && !tenantState.includes(stateFilter)) return false;
+      if (
+        searchFilter &&
+        !`${tenantName} ${tenantStreet} ${tenantCity} ${tenantState}`.includes(searchFilter)
+      ) {
+        return false;
+      }
+      return true;
+    });
   }
 
   @Get(':id')

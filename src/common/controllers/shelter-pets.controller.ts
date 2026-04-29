@@ -15,10 +15,43 @@ import { PetRepository } from '../repositories/pet.repository';
 export class ShelterPetsController {
   constructor(private readonly petRepository: PetRepository) {}
 
+  private normalize(value?: string | null) {
+    return (value ?? '').trim().toLowerCase();
+  }
+
+  private matchesLocation(
+    pet: {
+      name?: string;
+      description?: string;
+      tenant?: { address?: unknown };
+    },
+    city?: string,
+    state?: string,
+    search?: string,
+  ) {
+    const cityFilter = this.normalize(city);
+    const stateFilter = this.normalize(state);
+    const searchFilter = this.normalize(search);
+    const address = (pet.tenant?.address ?? {}) as { city?: string; state?: string };
+    const cityValue = this.normalize(address.city);
+    const stateValue = this.normalize(address.state);
+    const combined = this.normalize(`${pet.name ?? ''} ${pet.description ?? ''}`);
+
+    if (cityFilter && !cityValue.includes(cityFilter)) return false;
+    if (stateFilter && !stateValue.includes(stateFilter)) return false;
+    if (searchFilter && !combined.includes(searchFilter)) return false;
+    return true;
+  }
+
   @Get()
-  getAll(@Query('tenantId') tenantId?: string) {
+  async getAll(
+    @Query('tenantId') tenantId?: string,
+    @Query('city') city?: string,
+    @Query('state') state?: string,
+    @Query('search') search?: string,
+  ) {
     const tenantIdAsNumber = tenantId ? Number(tenantId) : undefined;
-    return this.petRepository.findAll({
+    const pets = await this.petRepository.findAll({
       where: tenantIdAsNumber ? { tenantId: tenantIdAsNumber } : undefined,
       orderBy: { createdAt: 'desc' },
       include: {
@@ -31,12 +64,18 @@ export class ShelterPetsController {
         },
       },
     });
+    return pets.filter((pet) => this.matchesLocation(pet, city, state, search));
   }
 
   @Get('available')
-  getAvailable(@Query('tenantId') tenantId?: string) {
+  async getAvailable(
+    @Query('tenantId') tenantId?: string,
+    @Query('city') city?: string,
+    @Query('state') state?: string,
+    @Query('search') search?: string,
+  ) {
     const tenantIdAsNumber = tenantId ? Number(tenantId) : undefined;
-    return this.petRepository.findAll({
+    const pets = await this.petRepository.findAll({
       where: {
         status: 'available',
         tenantId: tenantIdAsNumber,
@@ -52,6 +91,7 @@ export class ShelterPetsController {
         },
       },
     });
+    return pets.filter((pet) => this.matchesLocation(pet, city, state, search));
   }
 
   @Get(':id')

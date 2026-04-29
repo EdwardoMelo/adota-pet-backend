@@ -3,6 +3,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { TenantsController } from './controllers/tenants.controller';
 import { UsersController } from './controllers/users.controller';
 import { ShelterPetsController } from './controllers/shelter-pets.controller';
+import { SheltersController } from './controllers/shelters.controller';
 import { ProceduresController } from './controllers/procedures.controller';
 import { UserPetsController } from './controllers/user-pets.controller';
 import { AppointmentsController } from './controllers/appointments.controller';
@@ -23,6 +24,7 @@ import { ProcedureDataService } from './services/procedure-data.service';
 import { UserPetDataService } from './services/user-pet-data.service';
 import { AppointmentDataService } from './services/appointment-data.service';
 import { AdoptionDataService } from './services/adoption-data.service';
+import { ShelterDataService } from './services/shelter-data.service';
 import { EmailService } from './services/email.service';
 import { RolesGuard } from './guards/roles.guard';
 import { PrismaService } from './prisma.service';
@@ -33,6 +35,7 @@ import { PrismaService } from './prisma.service';
     TenantsController,
     UsersController,
     ShelterPetsController,
+    SheltersController,
     ProceduresController,
     UserPetsController,
     AppointmentsController,
@@ -56,6 +59,7 @@ import { PrismaService } from './prisma.service';
     UserPetDataService,
     AppointmentDataService,
     AdoptionDataService,
+    ShelterDataService,
     EmailService,
     {
       provide: APP_GUARD,
@@ -80,6 +84,7 @@ import { PrismaService } from './prisma.service';
     UserPetDataService,
     AppointmentDataService,
     AdoptionDataService,
+    ShelterDataService,
     EmailService,
   ],
 })

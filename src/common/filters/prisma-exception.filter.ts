@@ -3,6 +3,7 @@ import {
   Catch,
   ExceptionFilter,
   HttpStatus,
+  Logger,
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 
@@ -16,6 +17,8 @@ function normalizeTarget(target: unknown): string[] {
 
 @Catch(Prisma.PrismaClientKnownRequestError)
 export class PrismaExceptionFilter implements ExceptionFilter {
+  private readonly logger = new Logger(PrismaExceptionFilter.name);
+
   catch(exception: PrismaKnownError, host: ArgumentsHost): void {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse();
@@ -52,6 +55,17 @@ export class PrismaExceptionFilter implements ExceptionFilter {
         message = 'Não foi possível concluir a ação.';
         break;
     }
+
+    this.logger.error(
+      `Prisma error ${exception.code} on ${request.method} ${request.url}`,
+      exception.stack,
+    );
+    this.logger.error(
+      `Prisma details: ${JSON.stringify({
+        message: exception.message,
+        meta: exception.meta,
+      })}`,
+    );
 
     response.status(status).json({
       statusCode: status,

@@ -122,7 +122,7 @@ model UserPet {
   age              Int
   type             PetSpecies
   imageUrl         String?          @db.Text
-  notes            String?
+  notes            String?          @db.Text
   sourceAdoptionId Int?     @unique
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
